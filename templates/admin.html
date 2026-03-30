@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"><title>Admin Panel | Gastro</title><script src="https://cdn.tailwindcss.com"></script>
+    <style>.panel { display: none; } .panel.active { display: block; }</style>
+</head>
+<body class="bg-gray-50 flex min-h-screen font-sans">
+    <aside class="w-64 bg-slate-900 text-white p-6 sticky top-0 h-screen flex flex-col shadow-2xl">
+        <div class="text-2xl font-bold mb-10 text-orange-500 italic uppercase tracking-tighter">GASTRO ADMIN</div>
+        <nav class="space-y-2 flex-1">
+            <button onclick="showPanel('tours')" class="w-full text-left p-4 hover:bg-slate-800 rounded-2xl transition">📦 Turlar</button>
+            <button onclick="showPanel('festivals')" class="w-full text-left p-4 hover:bg-slate-800 rounded-2xl transition">🎉 Festivallar</button>
+            <button onclick="showPanel('settings')" class="w-full text-left p-4 hover:bg-slate-800 rounded-2xl transition">⚙️ Sozlamalar</button>
+            
+            <hr class="border-slate-800 my-4">
+            <a href="/" class="flex items-center p-4 text-orange-400 hover:text-orange-300 font-bold transition">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                SAYTGA QAYTISH
+            </a>
+        </nav>
+        <a href="/logout" class="p-4 text-red-400 font-bold border border-red-900/30 rounded-2xl text-center hover:bg-red-500 hover:text-white transition">Chiqish</a>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto">
+        {% macro render_table(items, type) %}
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50"><tr><th class="p-6 font-bold uppercase text-xs text-gray-400">Nomi (UZ)</th><th class="p-6 text-right">Amallar</th></tr></thead>
+                <tbody class="divide-y">
+                    {% for item in items %}
+                    <tr class="hover:bg-gray-50/50">
+                        <td class="p-6 font-bold text-gray-700">{{ (item.translations | from_json)['uz']['name'] }}</td>
+                        <td class="p-6 text-right space-x-2">
+                            <a href="/admin/edit/{{type}}/{{item.id}}" class="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs">Edit</a>
+                            <a href="/admin/delete/{{type}}/{{item.id}}" onclick="return confirm('O\'chirilsinmi?')" class="px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-xs">Del</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endmacro %}
+        <div id="panel-tours" class="panel active">
+            <h1 class="text-3xl font-bold mb-8">📦 Gastro Turlar</h1>
+            <form action="/admin/add/tour" method="POST" enctype="multipart/form-data" class="bg-white p-8 rounded-[2rem] shadow-sm mb-10 border border-gray-100">
+                <input type="file" name="images" multiple class="mb-4 block w-full" required>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input type="text" name="name_uz" placeholder="Nomi (UZ) *" class="p-4 bg-gray-50 rounded-xl outline-none border focus:border-orange-500" required>
+                    <input type="text" name="tag_uz" placeholder="Tag (UZ) *" class="p-4 bg-gray-50 rounded-xl outline-none border focus:border-orange-500" required>
+                </div>
+                <textarea name="desc_uz" rows="3" placeholder="Tavsif (UZ) *" class="w-full p-4 bg-gray-50 rounded-xl outline-none border focus:border-orange-500 mb-4" required></textarea>
+                <button type="submit" class="w-full py-4 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 transition uppercase text-xs">Saqlash</button>
+            </form>
+            {{ render_table(countries, 'tour') }}
+        </div>
+
+        <div id="panel-festivals" class="panel">
+            <h1 class="text-3xl font-bold mb-8">🎉 Gastro Festivallar</h1>
+            <form action="/admin/add/festival" method="POST" enctype="multipart/form-data" class="bg-white p-8 rounded-[2rem] shadow-sm mb-10 border border-gray-100">
+                <input type="file" name="images" multiple class="mb-4 block w-full" required>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input type="text" name="name_uz" placeholder="Festival nomi (UZ) *" class="p-4 bg-gray-50 rounded-xl outline-none border focus:border-purple-500" required>
+                    <input type="text" name="tag_uz" placeholder="Tag (UZ) *" class="p-4 bg-gray-50 rounded-xl outline-none border focus:border-purple-500" required>
+                </div>
+                <textarea name="desc_uz" rows="3" placeholder="Tavsif (UZ) *" class="w-full p-4 bg-gray-50 rounded-xl outline-none border focus:border-purple-500 mb-4" required></textarea>
+                <button type="submit" class="w-full py-4 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition uppercase text-xs">Festivalni Saqlash</button>
+            </form>
+            {{ render_table(festivals, 'festival') }}
+        </div>
+
+        <div id="panel-settings" class="panel">
+            <h1 class="text-3xl font-bold mb-8">⚙️ Sayt Sozlamalari</h1>
+            <form action="/admin/settings" method="POST" enctype="multipart/form-data" class="bg-white p-10 rounded-[3rem] shadow-lg space-y-6">
+                <div>
+                    <label class="block font-bold mb-2">Hero Media (Asosiy Rasm)</label>
+                    <input type="file" name="hero_media" class="w-full p-4 bg-gray-50 rounded-xl border">
+                </div>
+                <div>
+                    <label class="block font-bold mb-2">Biz haqimizda (UZ)</label>
+                    <textarea name="about_uz" rows="6" class="w-full p-4 bg-gray-50 rounded-xl border outline-none">{{ (settings.about_translations | from_json)['uz'] if settings }}</textarea>
+                </div>
+                <button type="submit" class="w-full py-5 bg-black text-white font-bold rounded-2xl hover:bg-orange-600 transition uppercase text-xs">Saqlash</button>
+            </form>
+        </div>
+    </main>
+
+
+    <script>
+        function showPanel(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + id).classList.add('active');
+            localStorage.setItem('lastPanel', id);
+        }
+        window.onload = () => showPanel(localStorage.getItem('lastPanel') || 'tours');
+    </script>
+</body>
+</html>

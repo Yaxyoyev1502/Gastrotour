@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"><title>Gastro Festivallar</title><script src="https://cdn.tailwindcss.com"></script>
+    <style>body { font-family: sans-serif; }</style>
+</head>
+<body class="bg-[#0f0f0f] text-white">
+    <nav class="p-6 bg-black/80 backdrop-blur-md flex justify-between items-center sticky top-0 z-50 border-b border-white/10">
+        <a href="/" class="text-2xl font-bold italic">GASTRO<span class="text-orange-500">.</span></a>
+        
+        <form action="/festivals" method="GET" class="flex-1 max-w-xl mx-10">
+            <input type="text" name="q" value="{{ request.args.get('q', '') }}" placeholder="Festivalni qidirish..." class="w-full p-3 bg-white/5 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 border-none text-white">
+        </form>
+
+        <div class="flex items-center space-x-6">
+            <div class="space-x-4">
+                <a href="/tours" class="text-xs font-bold uppercase text-gray-400 hover:text-white transition">Tours</a>
+                <a href="/festivals" class="text-xs font-bold uppercase text-purple-500">Festivals</a>
+            </div>
+            
+            <div class="relative group">
+                <button class="bg-white/10 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase border border-white/20">
+                    <span id="current-lang-code">UZ</span>
+                </button>
+                <div class="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all p-2 border z-[100]">
+                    {% for l in langs %}
+                    <button onclick="changeLang('{{l}}')" class="block w-full text-left p-2 text-[10px] font-bold hover:bg-orange-50 rounded-lg transition uppercase text-gray-700">{{l}}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="p-10 md:p-20">
+        <h1 class="text-6xl font-bold italic mb-16 tracking-tighter text-purple-500" id="page-title">Festivallar Ro'yxati</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {% for item in items %}
+            {% set trans = item.translations | from_json %}
+            {% set imgs = item.images_json | from_json %}
+            <div class="country-card relative h-[550px] rounded-[4rem] overflow-hidden shadow-2xl group border border-white/10" 
+                 data-translations='{{ item.translations | safe }}'>
+                
+                <img src="/static/uploads/{{ imgs[0] if imgs else '' }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                
+                <div class="absolute bottom-16 left-16 right-16">
+                    <p class="text-[12px] uppercase font-bold text-purple-400 mb-2 country-tag-el">{{ trans['uz']['tag'] }}</p>
+                    <h3 class="text-5xl font-bold italic country-name-el">{{ trans['uz']['name'] }}</h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <script>
+        // Flaskdan kelgan ma'lumotlarni xavfsiz qabul qilish
+const aboutTranslations = {{ (settings.about_translations | from_json) | tojson | safe if settings else '{}' }};
+const staticTrans = {{ static_trans | tojson | safe if static_trans else '{}' }};
+let currentLang = 'uz';
+
+function changeLang(lang) {
+    currentLang = lang;
+    
+    // 1. Navbar dagi til kodini yangilash
+    const langDisplay = document.getElementById('current-lang-code');
+    if (langDisplay) langDisplay.innerText = lang.toUpperCase();
+
+    // 2. KARTALARNI TARJIMA QILISH (Turlar va Festivallar)
+    document.querySelectorAll('.country-card').forEach(card => {
+        try {
+            // Atributdan JSON matnini olamiz
+            let rawData = card.getAttribute('data-translations');
+            // JSONni ob'ektga aylantiramiz
+            let translations = JSON.parse(rawData);
+            
+            if (translations[lang]) {
+                const nameEl = card.querySelector('.country-name-el');
+                const tagEl = card.querySelector('.country-tag-el');
+                
+                if (nameEl) nameEl.innerText = translations[lang].name;
+                if (tagEl) tagEl.innerText = translations[lang].tag;
+            }
+        } catch (e) {
+            console.error("Karta tarjimasida xato:", e);
+        }
+    });
+
+    // 3. BIZ HAQIMIZDA (ABOUT) MATNINI YANGILASH
+    const aboutEl = document.getElementById('about-text');
+    if (aboutEl && aboutTranslations[lang]) {
+        aboutEl.innerText = aboutTranslations[lang];
+    }
+
+    // 4. STATIK MATNLARNI YANGILASH (translations.json dan)
+    if (staticTrans[lang]) {
+        const s = staticTrans[lang];
+        // Sahifa sarlavhalari
+        const heroTitle = document.getElementById('hero-title');
+        const pageTitle = document.getElementById('page-title');
+        const toursTitle = document.getElementById('title-tours');
+        const festTitle = document.getElementById('title-festivals');
+
+        if (heroTitle) heroTitle.innerText = s.hero_title || heroTitle.innerText;
+        if (pageTitle) pageTitle.innerText = s.all_tours_title || s.festivals_title || pageTitle.innerText;
+        if (toursTitle) toursTitle.innerText = s.top_tours || toursTitle.innerText;
+        if (festTitle) festTitle.innerText = s.festivals_title || festTitle.innerText;
+    }
+}
+    </script>
+</body>
+</html>

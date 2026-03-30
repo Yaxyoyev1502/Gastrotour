@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GastroTour | Dunyo Lazzatlari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .modal-blur { backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
+        .lang-dropdown { min-width: 220px; }
+        #hero-video { object-fit: cover; width: 100%; height: 100%; position: absolute; inset: 0; }
+    </style>
+</head>
+
+{% macro render_card(item) %}
+    {% set trans = item.translations | from_json %}
+    {% set imgs = item.images_json | from_json %}
+    <div onclick="openModal(this)" class="country-card group relative h-[500px] rounded-[3.5rem] overflow-hidden cursor-pointer shadow-xl transition-all hover:scale-[1.02] bg-gray-200"
+         data-translations='{{ item.translations | safe }}'
+         data-images='{{ item.images_json | safe }}'>
+        
+        <img src="/static/uploads/{{ imgs[0] if imgs else '' }}" 
+             onerror="this.src='https://placehold.co/600x800?text=Rasm+Yuklanmadi'"
+             class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80"></div>
+        
+        <div class="absolute bottom-12 left-12 right-12">
+            <span class="text-orange-400 font-bold uppercase text-[10px] tracking-[0.4em] mb-2 block country-tag-el">
+                {{ trans['uz']['tag'] }}
+            </span>
+            <h3 class="text-4xl text-white serif italic country-name-el">
+                {{ trans['uz']['name'] }}
+            </h3>
+        </div>
+    </div>
+{% endmacro %}
+
+<body class="bg-[#faf9f6]">
+
+    <nav class="fixed w-full z-[100] px-6 py-6 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/10">
+        <div class="text-white text-2xl font-bold serif tracking-tighter">GASTRO<span class="text-orange-500">.</span></div>
+        
+        <div class="hidden lg:flex space-x-8 items-center">
+            <a href="/" id="nav-home" class="text-white font-bold text-[10px] uppercase tracking-widest border-b-2 border-orange-500 transition">Home</a>
+            <a href="/tours" id="nav-tours" class="text-white/70 font-bold text-[10px] uppercase tracking-widest hover:text-white transition">Turlar</a>
+            <a href="/festivals" id="nav-festivals" class="text-white/70 font-bold text-[10px] uppercase tracking-widest hover:text-white transition">Festivallar</a>
+            <a href="#about-section" id="nav-about" class="text-white/70 font-bold text-[10px] uppercase tracking-widest hover:text-white transition">Biz haqimizda</a>
+            <a href="/admin" id="nav-admin" class="text-orange-500 font-bold text-[10px] uppercase tracking-widest border border-orange-500/30 px-4 py-2 rounded-full hover:bg-orange-500 hover:text-white transition">Admin</a>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <form action="/tours" method="GET" class="relative group hidden md:block">
+                <input type="text" name="q" id="search-input" placeholder="Qidiruv..." class="bg-white/10 border border-white/20 rounded-full py-2 px-5 text-white text-xs outline-none focus:w-64 w-40 transition-all duration-500 focus:bg-white/20">
+            </form>
+
+            <div class="relative group">
+                <button class="flex items-center bg-white/20 px-5 py-2.5 rounded-full border border-white/30 text-white text-xs font-bold uppercase transition hover:bg-white/30">
+                    <span id="current-lang-code">UZ</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div class="absolute right-0 mt-3 lang-dropdown bg-white rounded-[2.5rem] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] border border-gray-100 p-3">
+                    <div class="grid grid-cols-1 gap-1 max-h-[350px] overflow-y-auto pr-2">
+                        {% for l_code in langs %}
+                        <button onclick="changeLang('{{ l_code }}')" class="flex items-center px-4 py-3 hover:bg-orange-50 rounded-2xl text-gray-700 text-[11px] font-bold uppercase tracking-widest transition w-full text-left">
+                            {{ l_code.upper() }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative h-screen bg-black overflow-hidden m-4 rounded-[3.5rem] shadow-2xl">
+        {% if settings and settings.hero_media %}
+            <img src="/static/uploads/{{ settings.hero_media }}" class="absolute inset-0 w-full h-full object-cover brightness-[0.6]">
+        {% else %}
+            <video id="hero-video" autoplay muted loop playsinline>
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-chef-preparing-a-dish-in-a-professional-kitchen-40502-large.mp4" type="video/mp4">
+            </video>
+        {% endif %}
+        <div class="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
+            <h1 id="hero-title" class="text-6xl md:text-[10rem] text-white serif italic mb-8">Gastro Tour</h1>
+        </div>
+    </section>
+
+    <section id="tours-section" class="py-32 px-8 md:px-20">
+        <h2 id="title-tours" class="text-5xl serif text-gray-800 italic mb-16">Gastronomik Turlar</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {% for country in countries %}
+                {{ render_card(country) }}
+            {% endfor %}
+        </div>
+    </section>
+
+    <section id="festivals-section" class="py-32 px-8 md:px-20 bg-gray-100/50 rounded-[4rem] m-4">
+        <h2 id="title-festivals" class="text-6xl serif text-gray-900 italic text-center mb-20">Gastro Festivallar</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {% for festival in festivals %}
+                {{ render_card(festival) }}
+            {% endfor %}
+        </div>
+    </section>
+
+    <section id="about-section" class="py-40 bg-gray-900 text-white px-8 md:px-20 rounded-t-[5rem]">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 id="about-title" class="text-5xl serif italic mb-10 text-orange-500">Biz haqimizda</h2>
+            <p id="about-text" class="text-gray-400 text-xl leading-relaxed italic">
+                {{ (settings.about_translations | from_json)['uz'] if settings else "Ma'lumot kiritilmagan." }}
+            </p>
+        </div>
+    </section>
+
+    <div id="modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-black/80 modal-blur opacity-0 transition-opacity duration-500">
+        <button onclick="closeModal()" class="absolute top-8 right-8 text-white text-5xl hover:text-orange-500 transition">&times;</button>
+        <div class="bg-white rounded-[4rem] max-w-6xl w-full overflow-hidden flex flex-col md:flex-row shadow-2xl scale-95 transition-transform duration-500" id="modal-content">
+            <div class="md:w-1/2 h-[600px] relative">
+                <div class="swiper mySwiper h-full w-full">
+                    <div class="swiper-wrapper" id="modal-slides"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+            <div class="md:w-1/2 p-20 flex flex-col justify-center bg-white">
+                <span id="m-tag" class="text-orange-500 font-bold uppercase text-[10px] mb-4 block"></span>
+                <h2 id="m-title" class="text-5xl serif mb-8 leading-tight text-gray-900"></h2>
+                <p id="m-desc" class="text-gray-500 text-lg mb-12 italic"></p>
+                <button id="modal-btn" class="w-full py-6 bg-gray-900 text-white font-bold rounded-3xl uppercase text-xs tracking-widest shadow-xl hover:bg-orange-600 transition">Bron qilish</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        const staticTrans = {{ static_trans | tojson | safe if static_trans else '{}' }};
+        const aboutTranslations = {{ (settings.about_translations | from_json) | tojson | safe if settings else '{}' }};
+        let currentLang = 'uz';
+
+        const swiper = new Swiper(".mySwiper", {
+            loop: true, autoplay: { delay: 4000 },
+            pagination: { el: ".swiper-pagination", clickable: true },
+        });
+
+        function changeLang(lang) {
+            currentLang = lang;
+            document.getElementById('current-lang-code').innerText = lang.toUpperCase();
+
+            // 1. Dinamik Kartalar (Turlar/Festivallar)
+            document.querySelectorAll('.country-card').forEach(card => {
+                try {
+                    const trans = JSON.parse(card.getAttribute('data-translations'));
+                    if (trans[lang]) {
+                        card.querySelector('.country-name-el').innerText = trans[lang].name;
+                        card.querySelector('.country-tag-el').innerText = trans[lang].tag;
+                    }
+                } catch (e) { console.error("Karta xatosi:", e); }
+            });
+
+            // 2. Statik va Navigatsiya matnlari
+            if (staticTrans[lang]) {
+                const t = staticTrans[lang];
+                const mapping = {
+                    'nav-home': t.nav_home || 'Home',
+                    'nav-tours': t.nav_tours || 'Tours',
+                    'nav-festivals': t.nav_festivals || 'Festivals',
+                    'nav-about': t.nav_about || 'About Us',
+                    'nav-admin': t.admin_link || 'Admin',
+                    'hero-title': t.hero_title,
+                    'title-tours': t.all_tours_title || t.top_tours,
+                    'title-festivals': t.festivals_title,
+                    'about-title': t.about_title || 'Biz haqimizda',
+                    'modal-btn': t.book_btn || 'Bron qilish'
+                };
+
+                for (const [id, text] of Object.entries(mapping)) {
+                    const el = document.getElementById(id);
+                    if (el) el.innerText = text;
+                }
+
+                // POISK PLACEHOLDER TARJIMASI
+                const searchInput = document.getElementById('search-input');
+                if (searchInput && t.search_placeholder) {
+                    searchInput.placeholder = t.search_placeholder;
+                }
+            }
+
+            // 3. Biz haqimizda (Asosiy matn)
+            if (aboutTranslations[lang]) {
+                const aboutText = document.getElementById('about-text');
+                if (aboutText) aboutText.innerText = aboutTranslations[lang];
+            }
+        }
+
+        function openModal(el) {
+            const translations = JSON.parse(el.getAttribute('data-translations'));
+            const images = JSON.parse(el.getAttribute('data-images'));
+            const data = translations[currentLang];
+            const slidesWrapper = document.getElementById('modal-slides');
+            slidesWrapper.innerHTML = images.map(i => `<div class="swiper-slide"><img src="/static/uploads/${i}" class="w-full h-full object-cover"></div>`).join('');
+            document.getElementById('m-title').innerText = data.name;
+            document.getElementById('m-tag').innerText = data.tag;
+            document.getElementById('m-desc').innerText = data.desc;
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                content.classList.remove('scale-95');
+                swiper.update();
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('opacity-100');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 500);
+        }
+    </script>
+</body>
+</html>

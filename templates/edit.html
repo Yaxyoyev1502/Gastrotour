@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"><title>Tahrirlash | Gastro</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-gray-100 p-10 font-sans">
+    <div class="max-w-5xl mx-auto bg-white p-12 rounded-[3.5rem] shadow-2xl border border-gray-100">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-3xl font-bold italic">Tahrirlash: {{ type.upper() }}</h1>
+            <a href="/admin" class="text-orange-600 font-bold hover:underline">← Bekor qilish</a>
+        </div>
+        
+        {% set trans = item.translations | from_json %}
+        <form method="POST" class="space-y-12">
+            {% for l in langs %}
+            <div class="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-200 relative">
+                <div class="absolute -top-3 left-8 px-4 bg-orange-600 text-white rounded-full text-[10px] font-bold uppercase py-1 shadow-lg">TIL: {{ l.upper() }}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Nomi ({{ l }})</label>
+                        <input type="text" name="name_{{l}}" value="{{ trans[l].name }}" class="w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Tag ({{ l }})</label>
+                        <input type="text" name="tag_{{l}}" value="{{ trans[l].tag }}" class="w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                </div>
+                <div class="mt-6 space-y-2">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Tavsif ({{ l }})</label>
+                    <textarea name="desc_{{l}}" rows="3" class="w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-orange-500">{{ trans[l].desc }}</textarea>
+                </div>
+            </div>
+            {% endfor %}
+            <button type="submit" class="w-full py-6 bg-slate-900 text-white font-bold rounded-[2rem] hover:bg-orange-600 transition-all shadow-2xl uppercase tracking-widest text-xs">
+                O'zgarishlarni Saqlash
+            </button>
+        </form>
+    </div>
+</body>
+</html>
