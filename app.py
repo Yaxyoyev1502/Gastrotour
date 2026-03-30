@@ -2,6 +2,8 @@ import os, sqlite3, json
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 from deep_translator import GoogleTranslator
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 app.secret_key = 'gastro_pro_2026_final'
@@ -13,9 +15,19 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 def get_db_connection():
-    conn = sqlite3.connect('gastrotour.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+    # Render'dagi DATABASE_URL ni tekshiramiz
+    database_url = os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # Agar serverda bo'lsak, PostgreSQL'ga ulanamiz
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
+        return conn
+    else:
+        # Agar o'z kompyuterimizda bo'lsak, SQLite'da davom etamiz
+        import sqlite3
+        conn = sqlite3.connect('gastrotour.db')
+        conn.row_factory = sqlite3.Row
+        return conn
 
 @app.template_filter('from_json')
 def from_json_filter(value):
